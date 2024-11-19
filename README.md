@@ -1,2 +1,2 @@
-# semi-empirical mass formula
- semi-empirical mass formula fitting
+# Semi-Empirical Mass Formula
+ semi-empirical mass formula fitting for extrapolation to heavy nuclei.
