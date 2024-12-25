@@ -3,7 +3,6 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from modules import binding_energy
 from modules import standard_deviation
-from modules import binding_energy_only_5
 import pandas as pd
 
 # Data
@@ -40,10 +39,11 @@ Bexp_data = Bexp_data[7:] * (N_data + Z_data) / 1000
 ZN_data = np.vstack((Z_data, N_data)).T
 
 # Perform the least-squares fit
-params_initial = [15, 17, 0.7, 11, 1.5, 1.0, 30, 20.0, -20.0, -1.0]  # Initial guesses for av, as_, ac, ap, kv, ks, W
-# params_initial = [15, 17, 0.001, 1.5, 1.0]  # Initial guesses for av, as_, ac, kv, ks
-params_opt, params_cov = curve_fit(lambda ZN, av, as_, ac, ap, kv, ks, W, ak, a0, fp
-                                   : binding_energy(ZN[:, 0], ZN[:, 1], av, as_, ac, ap, kv, ks, W, ak, a0, fp), 
+params_initial = [15, 17, 0.7, 11, 1.5, 1.0, 30, 20.0, -20.0, -1.0, -2.0, 0.1]  # Initial guesses for av, as_, ac, ap, kv, ks, W
+
+
+params_opt, params_cov = curve_fit(lambda ZN, av, as_, ac, ap, kv, ks, W, ak, a0, fp, b1, b2
+                                   : binding_energy(ZN[:, 0], ZN[:, 1], av, as_, ac, ap, kv, ks, W, ak, a0, fp, b1, b2), 
                                    ZN_data, Bexp_data, p0=params_initial, maxfev = int(1e5), method = 'lm')
 # params_opt, params_cov = curve_fit(lambda ZN, av, as_, ac, kv, ks
 #                                    : binding_energy_only_5(ZN[:, 0], ZN[:, 1], av, as_, ac, kv, ks), 
@@ -64,6 +64,8 @@ print(f"W: {params_opt[6]}")
 print(f"ak: {params_opt[7]}")
 print(f"a0: {params_opt[8]}")
 print(f"fp: {params_opt[9]}")
+print(f'b1: {params_opt[10]}')
+print(f'b2: {params_opt[11]}')
 print(f"Standard Deviation: {sigma}")
 
 
