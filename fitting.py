@@ -123,7 +123,7 @@ def main():
     # plt.show()
 
     #########################################################################
-    # print(len(Z_data))
+    print(len(Z_data))
     return 0
 
 if __name__ == '__main__':
