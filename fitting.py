@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from modules import binding_energy
 from modules import standard_deviation
 import pandas as pd
+import cgs 
+import matplotlib as mpl
 
 # Data
 df = pd.read_fwf('BE_data.txt', usecols=(2,3,11),
@@ -29,17 +31,20 @@ for i in range(len(BE0)):
         BE = np.append(BE, BE0[i])
 BE = BE.astype('float64')
 Bexp_data = BE
-print(BE[200])
+# print(BE[200])
 
-
-N_data = N_data[7:]
-Z_data = Z_data[7:]
-Bexp_data = Bexp_data[7:] * (N_data + Z_data) / 1000
+start = 100
+N_data = N_data[start:]
+Z_data = Z_data[start:]
+# print(N_data)
+# print(Z_data)
+Bexp_data = Bexp_data[start:] * (N_data + Z_data) / 1000
 # Combine Z and N into a 2D array for curve_fit
 ZN_data = np.vstack((Z_data, N_data)).T
 
+
 # Perform the least-squares fit
-params_initial = [15, 17, 0.7, 11, 1.5, 1.0, 30, 20.0, -20.0, -1.0, -2.0, 0.1]  # Initial guesses for av, as_, ac, ap, kv, ks, W
+params_initial = [15, 17, 0.7, 11, 1.5, 1.0, 30, 20.0, -20.0, -1.0, 2.0, -1.0]  # Initial guesses for av, as_, ac, ap, kv, ks, W
 
 
 params_opt, params_cov = curve_fit(lambda ZN, av, as_, ac, ap, kv, ks, W, ak, a0, fp, b1, b2
@@ -52,65 +57,79 @@ Bfit = binding_energy(Z_data, N_data, *params_opt)
 # # standard deviation
 sigma = standard_deviation(Bfit, Bexp_data)
 
+a_v = params_opt[0]
+a_s = params_opt[1]
+a_c = params_opt[2]
+a_p = params_opt[3]
+k_v = params_opt[4]
+k_s = params_opt[5]
+W = params_opt[6]
+a_k = params_opt[7]
+a_0 = params_opt[8]
+f_p = params_opt[9]
+b_1 = params_opt[10]
+b_2 = params_opt[11]
+# b_3 = params_opt[12]
+# b_np = params_opt[13]
 # # Output the fitted coefficients
-print("Fitted coefficients:")
-print(f"av: {params_opt[0]}")
-print(f"as: {params_opt[1]}")
-print(f"ac: {params_opt[2]}")
-print(f"ap: {params_opt[3]}")
-print(f"kv: {params_opt[4]}")
-print(f"ks: {params_opt[5]}")
-print(f"W: {params_opt[6]}")
-print(f"ak: {params_opt[7]}")
-print(f"a0: {params_opt[8]}")
-print(f"fp: {params_opt[9]}")
-print(f'b1: {params_opt[10]}')
-print(f'b2: {params_opt[11]}')
-print(f"Standard Deviation: {sigma}")
+def main():   
+    print("Fitted coefficients:")
+    print(f"av: {a_v}")
+    print(f"as: {a_s}")
+    print(f"ac: {a_c}")
+    print(f"ap: {a_p}")
+    print(f"kv: {k_v}")
+    print(f"ks: {k_s}")
+    print(f"W: {W}")
+    print(f"ak: {a_k}")
+    print(f"a0: {a_0}")
+    print(f"fp: {f_p}")
+    print(f'b1: {b_1}')
+    print(f'b2: {b_2}')
+    # print(f'b3: {b_3}')
+    # print(f'b_np: {b_np}')
+    print(f'r0: {3 * cgs.e ** 2 / (a_c * 1.60218e-6) / 5 / (1.e-13)}')
+    print(f"Standard Deviation: {sigma}")
 
 
-# # Plot experimental vs. fitted values
+    # # Plot experimental vs. fitted values
+    mpl.rcParams['figure.dpi'] = 300
+    fig, axs = plt.subplots(1, 2, figsize=(17, 12))
+    fig.suptitle('Empirical Data and SEMF', fontsize=20)
+    axs[0].scatter(Z_data + N_data, Bexp_data, label='Empirical', color='red', s=1)
+    axs[1].scatter(Z_data + N_data, Bfit, label='SEMF', color='blue', s=1)
+    axs[0].set_xlabel('Mass Number A (Z + N)', fontsize = 17)
+    axs[0].set_ylabel('Binding Energy (MeV)', fontsize = 17)
+    axs[1].set_xlabel('Mass Number A (Z + N)', fontsize = 17)
+    axs[1].set_ylabel('Binding Energy (MeV)', fontsize = 17)
+    axs[0].text(30, 1700, f'Number of data: {len(Z_data)}', fontsize = 17)
+    axs[1].text(-30, 1000, f"\n \
+                $a_v$: {a_v:.2f}\n \
+                $a_s$: {a_s:.2f}\n \
+                $a_c$: {a_c:.2f}\n \
+                $a_p$: {a_p:.2f}\n \
+                $k_v$: {k_v:.2f}\n \
+                $k_s$: {k_s:.2f}\n \
+                $W$: {W:.2f}\n \
+                $a_k$: {a_k:.2f}\n \
+                $a_0$: {a_0:.2f}\n \
+                $f_p$: {f_p:.2f}\n \
+                $b_1$: {b_1:.2f}\n \
+                $b_2$: {b_2:.2f}\n \
+                $\sigma$: {sigma:.2f}\n", fontsize=13)
+    plt.savefig('./results/BE_data_0105.png')
+    axs[0].legend(fontsize = 17, loc='lower right')
+    axs[1].legend(fontsize = 17, loc='lower right')
+    # plt.show()
 
-fig, axs = plt.subplots(1, 2, figsize=(5, 5))
-fig.suptitle('Empirical Data and SEMF', fontsize=20)
-axs[0].scatter(Z_data + N_data, Bexp_data, label='Empirical', color='red', s=1)
-axs[1].scatter(Z_data + N_data, Bfit, label='SEMF', color='blue', s=1)
-axs[0].set_xlabel('Mass Number A (Z + N)', fontsize = 14)
-axs[0].set_ylabel('Binding Energy (MeV)', fontsize = 14)
-axs[1].set_xlabel('Mass Number A (Z + N)', fontsize = 14)
-axs[1].set_ylabel('Binding Energy (MeV)', fontsize = 14)
-axs[0].text(0, 1700, f'Number of data: {len(Z_data)}', fontsize = 15)
-axs[1].text(-50, 1000, f"\n \
-            $a_v$: {params_opt[0]:.2f}\n \
-            $a_s$: {params_opt[1]:.2f}\n \
-            $a_c$: {params_opt[2]:.2f}\n \
-            $a_p$: {params_opt[3]:.2f}\n \
-            $k_v$: {params_opt[4]:.2f}\n \
-            $k_s$: {params_opt[5]:.2f}\n \
-            $W$: {params_opt[6]:.2f}\n \
-            $a_k$: {params_opt[7]:.2f}\n \
-            $a_0$: {params_opt[8]:.2f}\n \
-            $f_p$: {params_opt[9]:.2f}\n \
-            $\sigma$: {sigma:.2f}\n", fontsize=13)
-plt.savefig('./results/BE_data_1027.png')
-axs[0].legend(fontsize = 15, loc='lower right')
-axs[1].legend(fontsize = 15, loc='lower right')
-plt.show()
+    #########################################################################
+    # print(len(Z_data))
+    return 0
 
-#########################################################################
-print(len(Z_data))
-# for Z = 40
-N_test = 80
-Z_val = 40 # Decide the Z value to see when binding energy decreases
-Z = np.zeros(N_test)
-N = np.zeros(N_test)
-for j in range(N_test):
-    Z[j] = Z_val
-    N[j] = j + 1
-BE_cal = binding_energy(Z, N, *params_opt)
+if __name__ == '__main__':
+    main()
 
-
-print(BE_cal)
+# print(BE_cal)
 
 # plt.plot(N, BE_cal)
 # plt.xlabel('N varied')
