@@ -59,4 +59,5 @@ if __name__ == '__main__':
 
     # Show plot
     # plt.savefig('../../../Desktop/research/presentation_1226/beamer/eos_crust.png')
+    plt.savefig('./eos_crust.png')
     plt.show()
